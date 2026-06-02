@@ -64,9 +64,9 @@ This application utilizes a dual-engine machine learning approach to provide com
 * `model_features.pkl` — The saved column structure to ensure consistent UI input encoding.
 
 **3. Datasets & Source Data**
-*`nykaa_campaign_data_with_nulls.csv`
-*`
-*`
+*`nykaa_campaign_data_with_nulls.csv`— Raw, un-processed historical marketing dataset from Nykaa campaign channels, containing missing values and structural anomalies.
+*`purplle_campaign_data_with_nulls`— Raw marketing performance metrics from Purplle campaign runs, including uncleaned entries and null records.
+*`tira_campaign_data_with_nulls`— Raw campaign platform data sourced from Tira, requiring extensive data cleansing and imputation.
 * `cleaned_campaign_data.csv` — The final, cleaned, and processed historical dataset used for model training and EDA.
 * *(Optional: Add your other 2 raw source CSV filenames here if you are uploading them as well)*
 
