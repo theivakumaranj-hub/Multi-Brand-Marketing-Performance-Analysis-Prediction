@@ -25,7 +25,7 @@ df['Date'] = pd.to_datetime(df['Date'], format='%d-%m-%Y', errors='coerce')
 # (This ensures the ML model gets a healthy mix of both profits and losses to learn from)
 df['Profit_Flag'] = df['ROI'].apply(lambda x: 1 if x > 0 else 0)
 
-# 2. Validate and Recalculate ROI mathematically (to satisfy mentor guidelines)
+# 2. Validate and Recalculate ROI mathematically
 df['ROI'] = ((df['Revenue'] - df['Acquisition_Cost']) / df['Acquisition_Cost']) * 100
 
 # 3. Multi-label encoding for Channel_Used
