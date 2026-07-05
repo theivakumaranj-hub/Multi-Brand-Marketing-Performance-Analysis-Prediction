@@ -9,10 +9,12 @@ import plotly.express as px
 def load_models():
     reg = joblib.load('revenue_regression_model.pkl')
     clf = joblib.load('profit_classification_model.pkl')
+    scaler = joblib.load('scaler.pkl')
     cols = joblib.load('model_features.pkl')
-    return reg, clf, cols
+    return reg, clf, scaler, cols 
 
-reg_model, clf_model, model_cols = load_models()
+# FIX 2: Correctly unpacking the scaler into the global app state
+reg_model, clf_model, scaler, model_cols = load_models()
 
 # --- 2. BUILD THE UI ---
 st.title("📈 Marketing Campaign Performance Predictor")
@@ -50,43 +52,49 @@ with col3:
 
 # --- 3. PREDICTION LOGIC ---
 if st.button("Predict Campaign Performance"):
-    # Create a dataframe for the input
-    input_data = pd.DataFrame({
-        'Duration': [duration],
-        'Impressions': [impressions],
-        'Clicks': [clicks],
-        'Leads': [leads],
-        'Conversions': [conversions],
-        'Acquisition_Cost': [acq_cost],
-        'Engagement_Score': [eng_score],
-        'Campaign_Type': [campaign_type],
-        'Target_Audience': [target_audience],
-        'Language': [language],
-        'Customer_Segment': [customer_segment],
-        'Email': [1 if email else 0],
-        'Facebook': [1 if facebook else 0],
-        'Google': [1 if google else 0],
-        'Instagram': [1 if instagram else 0],
-        'WhatsApp': [1 if whatsapp else 0],
-        'YouTube': [1 if youtube else 0]
-    })
+    # 1. Start with a dictionary of all features initialized to 0
+    encoded_inputs = {col: 0 for col in model_cols}
+    
+    # 2. Fill in the base numerical features directly
+    encoded_inputs['Duration'] = duration
+    encoded_inputs['Impressions'] = impressions
+    encoded_inputs['Clicks'] = clicks
+    encoded_inputs['Leads'] = leads
+    encoded_inputs['Conversions'] = conversions
+    encoded_inputs['Acquisition_Cost'] = acq_cost
+    encoded_inputs['Engagement_Score'] = eng_score
+    
+    # 3. Handle your manual channel checkboxes
+    encoded_inputs['Email'] = 1 if email else 0
+    encoded_inputs['Facebook'] = 1 if facebook else 0
+    encoded_inputs['Google'] = 1 if google else 0
+    encoded_inputs['Instagram'] = 1 if instagram else 0
+    encoded_inputs['WhatsApp'] = 1 if whatsapp else 0
+    encoded_inputs['YouTube'] = 1 if youtube else 0
 
-    # One-Hot Encode categorical features just like training
-    input_encoded = pd.get_dummies(input_data, columns=['Campaign_Type', 'Target_Audience', 'Language', 'Customer_Segment'])
+    # 4. Dynamically switch the correct One-Hot Encoded dropdown columns to 1
+    if f"Campaign_Type_{campaign_type}" in encoded_inputs:
+        encoded_inputs[f"Campaign_Type_{campaign_type}"] = 1
+        
+    if f"Target_Audience_{target_audience}" in encoded_inputs:
+        encoded_inputs[f"Target_Audience_{target_audience}"] = 1
+        
+    if f"Language_{language}" in encoded_inputs:
+        encoded_inputs[f"Language_{language}"] = 1
+        
+    if f"Customer_Segment_{customer_segment}" in encoded_inputs:
+        encoded_inputs[f"Customer_Segment_{customer_segment}"] = 1
 
-    # Align columns with the model features (fill missing with 0)
-    # This prevents errors if a specific category wasn't selected in the dropdown
-    for col in model_cols:
-        if col not in input_encoded.columns:
-            input_encoded[col] = 0
-            
-    # Reorder columns to match training exactly
-    input_final = input_encoded[model_cols]
+    # 5. Convert our cleanly aligned dictionary into a single-row DataFrame
+    input_final = pd.DataFrame([encoded_inputs], columns=model_cols)
 
-   # Make Predictions
-    predicted_revenue = reg_model.predict(input_final)[0]
-    predicted_profit = clf_model.predict(input_final)[0]
+    # 6. Apply the Scaler matrix safely
+    input_final_scaled = scaler.transform(input_final)
 
+    # 7. Make Predictions using completely aligned data
+    predicted_revenue = reg_model.predict(input_final_scaled)[0]
+    predicted_profit = clf_model.predict(input_final_scaled)[0]
+    
     # --- 4. DISPLAY RESULTS ---
     st.divider()
     st.header("🎯 Prediction Results")
@@ -97,18 +105,16 @@ if st.button("Predict Campaign Performance"):
         st.metric("Predicted Revenue", f"₹ {predicted_revenue:,.2f}")
 
     with res_col2:
-        # Perfectly indented and using the correct 'predicted_profit' variable
         if predicted_profit == 0 or predicted_revenue < 0:
             st.error("Loss-Making Campaign (Loss)")
         else:
             st.success("Profitable Campaign (Profit)")
-    # Display Key Input Visualization (Make sure this is indented!)
+            
     st.subheader("Key Input Metrics Overview")
     chart_data = pd.DataFrame(
         {"Values": [impressions, clicks, leads, conversions]}, 
         index=["Impressions", "Clicks", "Leads", "Conversions"]
     )
     
-    # Create a Plotly bar chart (Indented 4 spaces inside the button block)
     fig = px.bar(chart_data, orientation='h', title="Marketing Funnel Inputs")
     st.plotly_chart(fig, use_container_width=True)
