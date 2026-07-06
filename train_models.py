@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.preprocessing import StandardScaler 
+from sklearn.preprocessing import StandardScaler                      # 1. ADDED IMPORT
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import joblib
@@ -84,7 +84,7 @@ print(f"F1-Score: {f1:.4f}\n")
 print("Saving models for Streamlit deployment...")
 joblib.dump(reg_model, 'revenue_regression_model.pkl')
 joblib.dump(clf_model, 'profit_classification_model.pkl')
-joblib.dump(scaler, 'scaler.pkl') 
+joblib.dump(scaler, 'scaler.pkl')                                    # 8. EXPORTED SCALER FILE
 joblib.dump(X.columns.tolist(), 'model_features.pkl')
 
 print("Success! Models trained, metrics calculated, and files saved.")
