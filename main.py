@@ -40,6 +40,6 @@ df = df.drop('Channel_Used', axis=1)
 df.to_csv('cleaned_campaign_data.csv', index=False)
 print("\nDataset successfully cleaned, engineered, and saved as 'cleaned_campaign_data.csv'!")
 
-# Check the new columns to verify our engineering worked
+# Check the new columns to verify its worked
 print("\n--- FINAL COLUMNS ---")
 print(df.columns.tolist())
